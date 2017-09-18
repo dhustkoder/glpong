@@ -3,7 +3,8 @@ SRC = src/*.c
 CFLAGS = -std=c99 -pedantic-errors -Wall -Wextra
 CFLAGS_RELEASE = -O3 -DNDEBUG
 CFLAGS_DEBUG = -O0 -g -DDEBUG
-LIBS = -lc
+LIBS = -lc -lSDL2 -lGL -lGLEW
+
 ifeq ($(BUILD_TYPE),Debug)
 	CFLAGS += $(CFLAGS_DEBUG)
 else
