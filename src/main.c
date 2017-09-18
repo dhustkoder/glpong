@@ -18,6 +18,7 @@ int main(void)
 			     800, 600, SDL_WINDOW_OPENGL);
 	if (window == NULL) {
 		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
+		goto Lsdlquit;
 		return EXIT_FAILURE;
 	}
 	
@@ -27,17 +28,12 @@ int main(void)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
 	SDL_GL_SetSwapInterval(1);
 	glewInit();
 
-	glClearColor(0.5, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(window);
-	
+
 	SDL_Event event;
 	bool rungame = true;
-
 	while (rungame) {
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT) {
@@ -45,10 +41,16 @@ int main(void)
 				break;
 			}
 		}
+
+		glClearColor(0.5, 0.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapWindow(window);
 	}
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
+Lsdlquit:
 	SDL_Quit();
 	return EXIT_SUCCESS;
 }
+
