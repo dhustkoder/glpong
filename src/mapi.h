@@ -6,6 +6,8 @@
 bool mapi_init(void);
 void mapi_term(void);
 bool mapi_proc_events(void);
-void mapi_frame_done(void);
+void mapi_clear(float r, float g, float b, float a);
+void mapi_draw(void);
 
 #endif
+

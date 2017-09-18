@@ -72,7 +72,13 @@ bool mapi_proc_events(void)
 	return true;
 }
 
-void mapi_frame_done(void)
+void mapi_clear(const float r, const float g, const float b, const float a)
+{
+	glClearColor(r, g, b, a);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void mapi_draw(void)
 {
 	SDL_GL_SwapWindow(mapi_window);
 }
