@@ -35,6 +35,16 @@ int main(void)
 			}
 		}
 
+		if (mapi_is_key_pressed(MAPI_KEY_UP))
+			quad.origin_y -= 6;
+		else if (mapi_is_key_pressed(MAPI_KEY_DOWN))
+			quad.origin_y += 6;
+
+		if (mapi_is_key_pressed(MAPI_KEY_LEFT))
+			quad.origin_x -= 6;
+		else if (mapi_is_key_pressed(MAPI_KEY_RIGHT))
+			quad.origin_x += 6;
+
 		mapi_draw_quad(&quad);
 		mapi_render_frame();
 	}

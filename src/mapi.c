@@ -13,6 +13,8 @@ static GLint pos_attrib = 0;
 static GLuint vao = 0;
 static GLuint vbo = 0;
 
+/* input */
+bool mapi_keys[MAPI_KEY_NKEYS];
 
 static void shader_init(void)
 {
@@ -139,9 +141,20 @@ void mapi_term(void)
 bool mapi_proc_events(void)
 {
 	SDL_Event event;
+	bool k = true;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT: return false;
+
+		case SDL_KEYUP: k = false; /* fallthrough */
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.sym) {
+			case SDLK_UP: mapi_keys[MAPI_KEY_UP] = k; break;
+			case SDLK_DOWN: mapi_keys[MAPI_KEY_DOWN] = k; break;
+			case SDLK_LEFT: mapi_keys[MAPI_KEY_LEFT] = k; break;
+			case SDLK_RIGHT: mapi_keys[MAPI_KEY_RIGHT] = k; break;
+			}
+			break;
 		}
 	}
 
@@ -156,18 +169,16 @@ void mapi_clear(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat
 
 void mapi_draw_quad(const struct quad* const quad)
 {
-	typedef struct vec2f { GLfloat x; GLfloat y; } vec2f;
-	const GLfloat middle_x = -1.f + (quad->origin_x / 800.f) * 2;
-	const GLfloat middle_y =  1.f - (quad->origin_y / 600.f) * 2;
-	const GLfloat x = quad->size_x / 800.f;
-	const GLfloat y = quad->size_y / 600.f;
-	const vec2f v0 = { middle_x + x, middle_y + y };
-	const vec2f v1 = { middle_x + x, middle_y - y };
-	const vec2f v2 = { middle_x - x, middle_y - y };
-	const vec2f v3 = { middle_x - x, middle_y + y };
+	const GLfloat ox = -1.f + (quad->origin_x / 800.f) * 2;
+	const GLfloat oy =  1.f - (quad->origin_y / 600.f) * 2;
+	const GLfloat sx = quad->size_x / 800.f;
+	const GLfloat sy = quad->size_y / 600.f;
 
-	const vec2f vertex[] = {
-		v0, v1, v2, v3
+	const GLfloat vertex[] = {
+		ox + sx, oy + sy,
+		ox + sx, oy - sy,
+		ox - sx, oy - sy,
+		ox - sx, oy + sy
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STREAM_DRAW);
