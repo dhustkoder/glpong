@@ -12,7 +12,10 @@ int main(void)
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
-	struct quad quad = { { 32, 32 }, { 400, 300 } };
+	struct quad quads[] = {
+		{ { 32, 32 }, { 400, 300 }, { 0, 255, 0 } },
+		{ { 32, 32 }, { 400, 300 }, { 255, 0, 0 } }
+	};
 
 	while (mapi_proc_events()) {
 		mapi_clear(c[0], c[1], c[2], 1.0);
@@ -34,16 +37,19 @@ int main(void)
 		}
 
 		if (mapi_is_key_pressed(MAPI_KEY_UP))
-			quad.pos.y -= 6;
+			quads[0].pos.y -= 6;
 		else if (mapi_is_key_pressed(MAPI_KEY_DOWN))
-			quad.pos.y += 6;
+			quads[0].pos.y += 6;
 
 		if (mapi_is_key_pressed(MAPI_KEY_LEFT))
-			quad.pos.x -= 6;
+			quads[0].pos.x -= 6;
 		else if (mapi_is_key_pressed(MAPI_KEY_RIGHT))
-			quad.pos.x += 6;
+			quads[0].pos.x += 6;
+	
+		mapi_render_begin();
+		mapi_render_quads(quads, 2);
+		mapi_render_flush();
 
-		mapi_draw_quad(&quad);
 		mapi_render_frame();
 	}
 

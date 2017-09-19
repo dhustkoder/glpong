@@ -18,9 +18,14 @@ struct vec2 {
 	uint16_t x, y;
 };
 
+struct color {
+	uint8_t r, g, b;
+};
+
 struct quad {
 	struct vec2 size;
 	struct vec2 pos;
+	struct color color;
 };
 
 
@@ -35,7 +40,9 @@ bool mapi_init(void);
 void mapi_term(void);
 bool mapi_proc_events(void);
 void mapi_clear(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
-void mapi_draw_quad(const struct quad* quad);
+void mapi_render_begin(void);
+void mapi_render_quads(const struct quad* quads, int size);
+void mapi_render_flush(void);
 void mapi_render_frame(void);
 
 
