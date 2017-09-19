@@ -15,7 +15,7 @@ enum MAPI_Key {
 
 
 struct vec2 {
-	uint16_t x, y;
+	int16_t x, y;
 };
 
 struct color {

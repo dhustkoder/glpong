@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include "mapi.h"
 
@@ -8,14 +9,22 @@ int main(void)
 	if (!mapi_init())
 		return EXIT_FAILURE;
 
-	const GLfloat mod[3] = { 0.0015, 0.0033, 0.0047 };
+	const int paddle_vel = 5;
+	struct vec2 ball_vel = { 6, 6 };
+
+	const GLfloat mod[3] = { 0.00015, 0.00011, 0.00018 };
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
-	struct quad quads[] = {
-		{ { 32, 32 }, { 400, 300 }, { 0, 255, 0 } },
-		{ { 32, 32 }, { 400, 300 }, { 255, 0, 0 } }
+	struct quad objects[] = {
+		{ { 32, 64 }, { 16, 300 }, { 0, 0, 255 } },
+		{ { 32, 64 }, { 784, 300 }, { 255, 0, 0 } },
+		{ { 12, 12 }, { 400, 300 }, { 0, 255, 0 } }
 	};
+
+	struct quad* const player = &objects[0];
+	struct quad* const enemy = &objects[1];
+	struct quad* const ball = &objects[2];
 
 	while (mapi_proc_events()) {
 		mapi_clear(c[0], c[1], c[2], 1.0);
@@ -36,20 +45,49 @@ int main(void)
 			}
 		}
 
+		/* update positions */
 		if (mapi_is_key_pressed(MAPI_KEY_UP))
-			quads[0].pos.y -= 6;
+			player->pos.y -= paddle_vel;
 		else if (mapi_is_key_pressed(MAPI_KEY_DOWN))
-			quads[0].pos.y += 6;
+			player->pos.y += paddle_vel;
 
-		if (mapi_is_key_pressed(MAPI_KEY_LEFT))
-			quads[0].pos.x -= 6;
-		else if (mapi_is_key_pressed(MAPI_KEY_RIGHT))
-			quads[0].pos.x += 6;
+		ball->pos.x += ball_vel.x;
+		ball->pos.y += ball_vel.y;
+
+		if (ball->pos.x >= 800 || ball->pos.x <= 0)
+			ball_vel.x = -ball_vel.x;
+		if (ball->pos.y >= 600 || ball->pos.y <= 0)
+			ball_vel.y = -ball_vel.y;
 	
-		mapi_render_begin();
-		mapi_render_quads(quads, 2);
-		mapi_render_flush();
 
+		/* check collisions */
+		const int16_t player_right = player->pos.x + player->size.x;
+		const int16_t enemy_left = enemy->pos.x - enemy->size.x;
+		const int16_t ball_left = ball->pos.x - ball->size.x;
+		const int16_t ball_right = ball->pos.x + ball->size.x;
+		const struct quad* paddle;
+
+		if (ball_left < player_right)
+			paddle = player;	
+		else if (ball_right > enemy_left)
+			paddle = enemy;
+		else
+			paddle = NULL;
+
+		if (paddle) {
+			const int16_t paddle_top = paddle->pos.y - paddle->size.y;
+			const int16_t paddle_bottom = paddle->pos.y + paddle->size.y;
+			const int16_t ball_top = ball->pos.y - ball->size.y;
+			const int16_t ball_bottom = ball->pos.y + ball->size.y;
+			if (ball_top <= paddle_bottom && ball_bottom >= paddle_top) {
+				ball_vel.x = -ball_vel.x;
+				ball->pos.x += ball_vel.x;
+			}
+		}
+
+		mapi_render_begin();
+		mapi_render_quads(objects, sizeof(objects)/sizeof(objects[0]));
+		mapi_render_flush();
 		mapi_render_frame();
 	}
 
