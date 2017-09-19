@@ -1,7 +1,5 @@
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <GL/glew.h>
 #include "mapi.h"
 
 
@@ -14,7 +12,7 @@ int main(void)
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
-	struct quad quad = { 32, 32, 400, 300 };
+	struct quad quad = { { 32, 32 }, { 400, 300 } };
 
 	while (mapi_proc_events()) {
 		mapi_clear(c[0], c[1], c[2], 1.0);
@@ -36,14 +34,14 @@ int main(void)
 		}
 
 		if (mapi_is_key_pressed(MAPI_KEY_UP))
-			quad.origin_y -= 6;
+			quad.pos.y -= 6;
 		else if (mapi_is_key_pressed(MAPI_KEY_DOWN))
-			quad.origin_y += 6;
+			quad.pos.y += 6;
 
 		if (mapi_is_key_pressed(MAPI_KEY_LEFT))
-			quad.origin_x -= 6;
+			quad.pos.x -= 6;
 		else if (mapi_is_key_pressed(MAPI_KEY_RIGHT))
-			quad.origin_x += 6;
+			quad.pos.x += 6;
 
 		mapi_draw_quad(&quad);
 		mapi_render_frame();

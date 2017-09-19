@@ -1,5 +1,6 @@
 #ifndef GLPONG_MAPI_H_
 #define GLPONG_MAPI_H_
+#include <stdint.h>
 #include <stdbool.h>
 #include <GL/gl.h>
 
@@ -13,11 +14,13 @@ enum MAPI_Key {
 };
 
 
+struct vec2 {
+	uint16_t x, y;
+};
+
 struct quad {
-	int16_t size_x;
-	int16_t size_y;
-	int16_t origin_x;
-	int16_t origin_y;
+	struct vec2 size;
+	struct vec2 pos;
 };
 
 

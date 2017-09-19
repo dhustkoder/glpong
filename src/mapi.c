@@ -16,6 +16,8 @@ static GLuint vbo = 0;
 /* input */
 bool mapi_keys[MAPI_KEY_NKEYS];
 
+
+
 static void shader_init(void)
 {
 	const GLchar* const vs_src =
@@ -169,16 +171,16 @@ void mapi_clear(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat
 
 void mapi_draw_quad(const struct quad* const quad)
 {
-	const GLfloat ox = -1.f + (quad->origin_x / 800.f) * 2;
-	const GLfloat oy =  1.f - (quad->origin_y / 600.f) * 2;
-	const GLfloat sx = quad->size_x / 800.f;
-	const GLfloat sy = quad->size_y / 600.f;
+	const GLfloat px = -1.f + (quad->pos.x / 800.f) * 2;
+	const GLfloat py =  1.f - (quad->pos.y / 600.f) * 2;
+	const GLfloat sx = quad->size.x / 800.f;
+	const GLfloat sy = quad->size.y / 600.f;
 
 	const GLfloat vertex[] = {
-		ox + sx, oy + sy,
-		ox + sx, oy - sy,
-		ox - sx, oy - sy,
-		ox - sx, oy + sy
+		px + sx, py + sy,
+		px + sx, py - sy,
+		px - sx, py - sy,
+		px - sx, py + sy
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STREAM_DRAW);
