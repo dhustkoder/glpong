@@ -9,9 +9,15 @@ int main(void)
 	if (!mapi_init())
 		return EXIT_FAILURE;
 
-	const float mod[3] = { 0.0015, 0.0082, 0.0011 };
+	const float mod[3] = { 0.0015, 0.0033, 0.0047 };
 	bool up[3] = { true, true, true };
 	float c[3] = { 0.0, 0.0, 0.0 };
+
+	const GLfloat vertex[] = {
+		0.5, 0.5,
+		-0.5, 0.5,
+		0.0, 1.0
+	};
 
 	while (mapi_proc_events()) {
 		mapi_clear(c[0], c[1], c[2], 1.0);
@@ -32,7 +38,8 @@ int main(void)
 			}
 		}
 
-		mapi_draw();
+		mapi_draw(vertex, sizeof(vertex)/sizeof(vertex[0]));
+		mapi_render_frame();
 	}
 
 	mapi_term();
