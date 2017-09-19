@@ -157,23 +157,21 @@ void mapi_clear(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat
 void mapi_draw_quad(const struct quad* const quad)
 {
 	typedef struct vec2f { GLfloat x; GLfloat y; } vec2f;
-	const GLfloat middle_x = quad->origin_x / 800.f;
-	const GLfloat middle_y = quad->origin_y / 600.f;
+	const GLfloat middle_x = -1.f + (quad->origin_x / 800.f) * 2;
+	const GLfloat middle_y =  1.f - (quad->origin_y / 600.f) * 2;
 	const GLfloat x = quad->size_x / 800.f;
 	const GLfloat y = quad->size_y / 600.f;
 	const vec2f v0 = { middle_x + x, middle_y + y };
 	const vec2f v1 = { middle_x + x, middle_y - y };
 	const vec2f v2 = { middle_x - x, middle_y - y };
 	const vec2f v3 = { middle_x - x, middle_y + y };
-	const vec2f v4 = { middle_x - x, middle_y - y };
 
 	const vec2f vertex[] = {
-		v0, v1, v2,
-		v0, v3, v4
+		v0, v1, v2, v3
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 void mapi_render_frame(void)

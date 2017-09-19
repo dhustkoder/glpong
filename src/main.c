@@ -14,7 +14,7 @@ int main(void)
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
-	struct quad quad = { 300, 300, -300, 0 };
+	struct quad quad = { 32, 32, 400, 300 };
 
 	while (mapi_proc_events()) {
 		mapi_clear(c[0], c[1], c[2], 1.0);
