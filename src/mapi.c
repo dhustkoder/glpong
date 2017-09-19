@@ -16,14 +16,14 @@ static GLuint vbo = 0;
 
 static void shader_init(void)
 {
-	const GLchar* const vs_buffer =
+	const GLchar* const vs_src =
 	"#version 130\n"
 	"in vec2 position;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = vec4(position, 0.0, 1.0);\n"
 	"}\n";
-	const GLchar* const fs_buffer =
+	const GLchar* const fs_src =
 	"#version 130\n"
 	"out vec4 color;\n"
 	"void main()\n"
@@ -37,28 +37,25 @@ static void shader_init(void)
 
 	assert(shader_id != 0 && vs_id != 0 && fs_id != 0);
 
-	glShaderSource(vs_id, 1, &vs_buffer, NULL);
-	glShaderSource(fs_id, 1, &fs_buffer, NULL);
-	glCompileShader(vs_id);
-	glCompileShader(fs_id);
+	const GLuint ids[] = { vs_id, fs_id };
+	const GLchar* const srcs[] = { vs_src, fs_src };
+	GLchar err_buffer[512];
 
-	GLchar buffer[512];
-	GLint success;
-	glGetShaderiv(vs_id, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE) {
-		glGetShaderInfoLog(vs_id, 512, NULL, buffer);
-		puts(buffer);
-		assert(false);
-	}
-	glGetShaderiv(fs_id, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE) {
-		glGetShaderInfoLog(fs_id, 512, NULL, buffer);
-		puts(buffer);
-		assert(false);
+	for (int i = 0; i < 2; ++i) {
+		glShaderSource(ids[i], 1, &srcs[i], NULL);
+		glCompileShader(ids[i]);
+
+		GLint success;
+		glGetShaderiv(ids[i], GL_COMPILE_STATUS, &success);
+		if (success == GL_FALSE) {
+			glGetShaderInfoLog(ids[i], 512, NULL, err_buffer);
+			puts(err_buffer);
+			assert(false);
+		}
+
+		glAttachShader(shader_id, ids[i]);
 	}
 
-	glAttachShader(shader_id, vs_id);
-	glAttachShader(shader_id, fs_id);
 	glLinkProgram(shader_id);
 	glUseProgram(shader_id);
 
