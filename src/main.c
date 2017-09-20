@@ -18,8 +18,8 @@ int main(void)
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
 	struct quad objects[] = {
-		{ { 15, 299 }, { 16, 300 }, { 0, 0, 255 } },
-		{ { 15, 32 }, { 784, 300 }, { 255, 0, 0 } },
+		{ { 6, 96 }, { 16, 300 }, { 0, 0, 255 } },
+		{ { 6, 96 }, { 784, 300 }, { 255, 0, 0 } },
 		{ { 6, 6 }, { 400, 300 }, { 0, 255, 0 } }
 	};
 
@@ -55,8 +55,11 @@ int main(void)
 		ball->pos.x += ball_vel.x;
 		ball->pos.y += ball_vel.y;
 
-		if (ball->pos.x >= 800 || ball->pos.x <= 0)
+		if (ball->pos.x >= 800 || ball->pos.x <= 0) {
 			ball_vel.x = -ball_vel.x;
+			ball->pos.x = 400;
+			ball->pos.y = 300;
+		}
 		if (ball->pos.y >= 600 || ball->pos.y <= 0)
 			ball_vel.y = -ball_vel.y;
 	
@@ -75,14 +78,16 @@ int main(void)
 			paddle = NULL;
 
 		if (paddle != NULL) {
-			//raise(SIGTRAP);
 			const int16_t ptop = paddle->pos.y - paddle->size.y;
 			const int16_t pbottom = paddle->pos.y + paddle->size.y;
 			const int16_t btop = ball->pos.y - ball->size.y;
 			const int16_t bbottom = ball->pos.y + ball->size.y;
 			if (btop <= pbottom && bbottom >= ptop) {
 				ball_vel.x = -ball_vel.x;
-				ball->pos.x += ball_vel.x;
+				if (ball->pos.y > paddle->pos.y)
+					ball_vel.y = abs(ball_vel.y);
+				else
+					ball_vel.y = -abs(ball_vel.y);
 			}
 		}
 
