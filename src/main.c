@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include "mapi.h"
@@ -17,9 +18,9 @@ int main(void)
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
 	struct quad objects[] = {
-		{ { 32, 64 }, { 16, 300 }, { 0, 0, 255 } },
-		{ { 32, 64 }, { 784, 300 }, { 255, 0, 0 } },
-		{ { 12, 12 }, { 400, 300 }, { 0, 255, 0 } }
+		{ { 15, 299 }, { 16, 300 }, { 0, 0, 255 } },
+		{ { 15, 32 }, { 784, 300 }, { 255, 0, 0 } },
+		{ { 6, 6 }, { 400, 300 }, { 0, 255, 0 } }
 	};
 
 	struct quad* const player = &objects[0];
@@ -59,7 +60,6 @@ int main(void)
 		if (ball->pos.y >= 600 || ball->pos.y <= 0)
 			ball_vel.y = -ball_vel.y;
 	
-
 		/* check collisions */
 		const int16_t player_right = player->pos.x + player->size.x;
 		const int16_t enemy_left = enemy->pos.x - enemy->size.x;
@@ -74,12 +74,13 @@ int main(void)
 		else
 			paddle = NULL;
 
-		if (paddle) {
-			const int16_t paddle_top = paddle->pos.y - paddle->size.y;
-			const int16_t paddle_bottom = paddle->pos.y + paddle->size.y;
-			const int16_t ball_top = ball->pos.y - ball->size.y;
-			const int16_t ball_bottom = ball->pos.y + ball->size.y;
-			if (ball_top <= paddle_bottom && ball_bottom >= paddle_top) {
+		if (paddle != NULL) {
+			//raise(SIGTRAP);
+			const int16_t ptop = paddle->pos.y - paddle->size.y;
+			const int16_t pbottom = paddle->pos.y + paddle->size.y;
+			const int16_t btop = ball->pos.y - ball->size.y;
+			const int16_t bbottom = ball->pos.y + ball->size.y;
+			if (btop <= pbottom && bbottom >= ptop) {
 				ball_vel.x = -ball_vel.x;
 				ball->pos.x += ball_vel.x;
 			}

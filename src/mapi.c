@@ -34,8 +34,8 @@ static void shader_init(void)
 	"out vec4 frag_color;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4(-1.0 + (pos.x / 800.0),\n"
-	"	                    1.0 - (pos.y / 600.0), 0.0, 1.0);\n"
+	"	gl_Position = vec4(-1.0 + (pos.x / 399.0),\n"
+	"	                    1.0 - (pos.y / 299.0), 0.0, 1.0);\n"
 	"	frag_color = vec4(rgb / 255.0, 1.0);\n"
 	"}\n";
 	const GLchar* const fs_src =
@@ -199,8 +199,8 @@ void mapi_render_quads(const struct quad* const quads, const int size)
 {
 	vertex_cnt += size;
 	for (int i = 0; i < size; ++i) {
-		const GLfloat px = quads[i].pos.x * 2;
-		const GLfloat py = quads[i].pos.y * 2;
+		const GLfloat px = quads[i].pos.x;
+		const GLfloat py = quads[i].pos.y;
 		const GLfloat sx = quads[i].size.x;
 		const GLfloat sy = quads[i].size.y;
 		const GLfloat r = quads[i].color.r;
