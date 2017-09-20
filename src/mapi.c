@@ -34,8 +34,8 @@ static void shader_init(void)
 	"out vec4 frag_color;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4(-1.0 + (pos.x / 399.0),\n"
-	"	                    1.0 - (pos.y / 299.0), 0.0, 1.0);\n"
+	"	gl_Position = vec4(-1.0 + (pos.x / 800.0),\n"
+	"	                    1.0 - (pos.y / 600.0), 0.0, 1.0);\n"
 	"	frag_color = vec4(rgb / 255.0, 1.0);\n"
 	"}\n";
 	const GLchar* const fs_src =
@@ -168,7 +168,6 @@ bool mapi_proc_events(void)
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT: return false;
-
 		case SDL_KEYUP: k = false; /* fallthrough */
 		case SDL_KEYDOWN:
 			switch (event.key.keysym.sym) {
@@ -184,7 +183,7 @@ bool mapi_proc_events(void)
 	return true;
 }
 
-void mapi_clear(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a)
+void mapi_render_clear(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a)
 {
 	glClearColor(r, g, b, a);
 	glClear(GL_COLOR_BUFFER_BIT);

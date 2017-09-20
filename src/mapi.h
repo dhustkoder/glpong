@@ -15,17 +15,33 @@ enum MAPI_Key {
 
 
 struct vec2 {
-	int16_t x, y;
+	GLfloat x, y;
+};
+
+struct vec3 {
+	GLfloat x, y, z;
+};
+
+struct vec4 {
+	GLfloat x, y, z, w;
 };
 
 struct color {
 	uint8_t r, g, b;
 };
 
+
+typedef struct vec2 vec2_t;
+typedef struct vec3 vec3_t;
+typedef struct vec4 vec4_t;
+typedef struct color color_t;
+typedef vec4_t mat4_t[4];
+
+
 struct quad {
-	struct vec2 size;
-	struct vec2 pos;
-	struct color color;
+	vec2_t size;
+	vec2_t pos;
+	color_t color;
 };
 
 
@@ -39,7 +55,7 @@ static inline bool mapi_is_key_pressed(const enum MAPI_Key key)
 bool mapi_init(void);
 void mapi_term(void);
 bool mapi_proc_events(void);
-void mapi_clear(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+void mapi_render_clear(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 void mapi_render_begin(void);
 void mapi_render_quads(const struct quad* quads, int size);
 void mapi_render_flush(void);

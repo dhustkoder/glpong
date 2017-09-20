@@ -18,9 +18,9 @@ int main(void)
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
 	struct quad objects[] = {
-		{ { 6, 96 }, { 16, 300 }, { 0, 0, 255 } },
-		{ { 6, 96 }, { 784, 300 }, { 255, 0, 0 } },
-		{ { 6, 6 }, { 400, 300 }, { 0, 255, 0 } }
+		{ { 32, 96 }, { 16, 300 }, { 0, 0, 255 } },
+		{ { 32, 96 }, { 784, 300 }, { 255, 0, 0 } },
+		{ { 12, 12 }, { 400, 300 }, { 0, 255, 0 } }
 	};
 
 	struct quad* const player = &objects[0];
@@ -28,7 +28,7 @@ int main(void)
 	struct quad* const ball = &objects[2];
 
 	while (mapi_proc_events()) {
-		mapi_clear(c[0], c[1], c[2], 1.0);
+		mapi_render_clear(c[0], c[1], c[2], 1.0);
 
 		for (int i = 0; i < 3; ++i) {
 			if (up[i]) {
@@ -59,9 +59,9 @@ int main(void)
 			ball_vel.x = -ball_vel.x;
 			ball->pos.x = 400;
 			ball->pos.y = 300;
-		}
-		if (ball->pos.y >= 600 || ball->pos.y <= 0)
+		} else if (ball->pos.y >= 600 || ball->pos.y <= 0) {
 			ball_vel.y = -ball_vel.y;
+		}
 	
 		/* check collisions */
 		const int16_t player_right = player->pos.x + player->size.x;
