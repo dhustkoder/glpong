@@ -15,7 +15,7 @@ enum MAPI_Key {
 
 
 struct vec2 {
-	GLfloat x, y;
+	GLfloat x, y;	
 };
 
 struct vec3 {
@@ -26,6 +26,10 @@ struct vec4 {
 	GLfloat x, y, z, w;
 };
 
+struct mat4 {
+	GLfloat data[4][4];
+};
+
 struct color {
 	uint8_t r, g, b;
 };
@@ -34,8 +38,8 @@ struct color {
 typedef struct vec2 vec2_t;
 typedef struct vec3 vec3_t;
 typedef struct vec4 vec4_t;
+typedef struct mat4 mat4_t;
 typedef struct color color_t;
-typedef vec4_t mat4_t[4];
 
 
 struct quad {

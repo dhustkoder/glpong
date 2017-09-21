@@ -1,7 +1,13 @@
 #include <assert.h>
+#include <math.h>
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include "mapi.h"
+
+
+#ifndef M_PI
+#define M_PI 3.14159265359
+#endif
 
 
 /* video / renderer */
@@ -25,6 +31,38 @@ bool mapi_keys[MAPI_KEY_NKEYS];
 
 
 
+static mat4_t perspective(const float fov, const float aspect,
+                        const float near, const float far)
+{
+	const float radians = fov * (M_PI / 180.f);
+	const float half_fov = tanf(radians / 2.f);
+	mat4_t mat;
+	memset(&mat, 0, sizeof(mat4_t));
+	mat.data[0][0] = 1 / (aspect * half_fov);
+	mat.data[1][1] = 1 / half_fov;
+	mat.data[2][2] = -(far + near) / (far - near);
+	mat.data[2][3] = -1.0f;
+	mat.data[3][2] = -(2.f * far * near) / (far - near);
+	return mat;
+}
+
+static mat4_t translate(const vec3_t translate)
+{
+	mat4_t mat;
+
+	mat.data[0][0] = 1.0f;
+	mat.data[1][1] = 1.0f;
+	mat.data[2][2] = 1.0f;
+	mat.data[3][3] = 1.0f;
+
+	mat.data[3][0] = translate.x;
+	mat.data[3][1] = translate.y;
+	mat.data[3][2] = translate.z;
+
+	return mat;
+}
+
+
 static void shader_init(void)
 {
 	const GLchar* const vs_src =
@@ -32,10 +70,12 @@ static void shader_init(void)
 	"in vec2 pos;\n"
 	"in vec3 rgb;\n"
 	"out vec4 frag_color;\n"
+	"uniform mat4 model = mat4(1.0);\n"
+	"uniform mat4 view = mat4(1.0);\n"
+	"uniform mat4 projection;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4(-1.0 + (pos.x / 800.0),\n"
-	"	                    1.0 - (pos.y / 600.0), 0.0, 1.0);\n"
+	"	gl_Position = projection * view * vec4(pos, 0.0, 1.0);\n"
 	"	frag_color = vec4(rgb / 255.0, 1.0);\n"
 	"}\n";
 	const GLchar* const fs_src =
@@ -77,6 +117,7 @@ static void shader_init(void)
 
 	const GLint pos_attrib = glGetAttribLocation(shader_id, "pos");
 	const GLint rgb_attrib = glGetAttribLocation(shader_id, "rgb");
+
 	glEnableVertexAttribArray(pos_attrib);
 	glEnableVertexAttribArray(rgb_attrib);
 	glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_TRUE,
@@ -84,6 +125,14 @@ static void shader_init(void)
 	glVertexAttribPointer(rgb_attrib, 3, GL_FLOAT, GL_TRUE,
 	                      sizeof(struct vertex_data),
 			      (void*)(sizeof(GLfloat) * 2));
+
+	const GLint proj_attrib = glGetUniformLocation(shader_id, "projection");
+	const GLint view_attrib = glGetUniformLocation(shader_id, "view");
+	const mat4_t projection = perspective(45, 800.f / 600.f, 0.1, 100.f);
+	const vec3_t tran = { 0, 0, -3 };
+	const mat4_t view = translate(tran);
+	glUniformMatrix4fv(proj_attrib, 1, GL_FALSE, (GLfloat*) &projection);
+	glUniformMatrix4fv(view_attrib, 1, GL_FALSE, (GLfloat*) &view);
 }
 
 static void shader_term(void)
@@ -130,10 +179,11 @@ bool mapi_init(void)
 	}
 
 	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
 	glGenBuffers(1, &vbo);
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 1024,
+	glBufferData(GL_ARRAY_BUFFER,
+	             sizeof(GLfloat) * 1024,
 	             NULL, GL_DYNAMIC_DRAW);
 
 	glViewport(0, 0, 800, 600);
@@ -198,30 +248,30 @@ void mapi_render_quads(const struct quad* const quads, const int size)
 {
 	vertex_cnt += size;
 	for (int i = 0; i < size; ++i) {
-		const GLfloat px = quads[i].pos.x;
-		const GLfloat py = quads[i].pos.y;
-		const GLfloat sx = quads[i].size.x;
-		const GLfloat sy = quads[i].size.y;
+		const GLfloat px = (-1.0f + (quads[i].pos.x / 800.f));
+		const GLfloat py = (+1.0f - (quads[i].pos.y / 600.f));
+		const GLfloat sx = quads[i].size.x / 800.f;
+		const GLfloat sy = quads[i].size.y / 600.f;
 		const GLfloat r = quads[i].color.r;
 		const GLfloat g = quads[i].color.g;
 		const GLfloat b = quads[i].color.b;
 
-		vertex_data->x = px + sx;
-		vertex_data->y = py + sy;
-		vertex_data->r = r;
-		vertex_data->g = g;
-		vertex_data->b = b;
-		++vertex_data;
-
-		vertex_data->x = px + sx;
-		vertex_data->y = py - sy;
-		vertex_data->r = r;
-		vertex_data->g = g;
-		vertex_data->b = b;
-		++vertex_data;
-
 		vertex_data->x = px - sx;
 		vertex_data->y = py - sy;
+		vertex_data->r = r;
+		vertex_data->g = g;
+		vertex_data->b = b;
+		++vertex_data;
+
+		vertex_data->x = px + sx;
+		vertex_data->y = py - sy;
+		vertex_data->r = r;
+		vertex_data->g = g;
+		vertex_data->b = b;
+		++vertex_data;
+
+		vertex_data->x = px + sx;
+		vertex_data->y = py + sy;
 		vertex_data->r = r;
 		vertex_data->g = g;
 		vertex_data->b = b;
