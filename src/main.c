@@ -10,17 +10,17 @@ int main(void)
 	if (!mapi_init())
 		return EXIT_FAILURE;
 
-	const int paddle_vel = 5;
-	struct vec2 ball_vel = { 6, 6 };
+	const GLfloat paddle_vel = 5.5f;
+	struct vec2 ball_vel = { 8.5f, 8.5f };
 
 	const GLfloat mod[3] = { 0.00015, 0.00011, 0.00018 };
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
 	struct quad objects[] = {
-		{ { 32, 96 }, { 16, 300 }, { 0, 0, 255 } },
-		{ { 32, 96 }, { 784, 300 }, { 255, 0, 0 } },
-		{ { 12, 12 }, { 400, 300 }, { 0, 255, 0 } }
+		{ { 11.5f, 64 }, { 11.5f, 300  }, { 0, 0, 255 } },
+		{ { 11.5f, 64 }, { 800 - 11.5f, 300 }, { 255, 0, 0 } },
+		{ { 8.5f,  8.5f  }, { 400, 300 }, { 0, 255, 0 } }
 	};
 
 	struct quad* const player = &objects[0];

@@ -30,38 +30,31 @@ static GLuint vbo = 0;
 bool mapi_keys[MAPI_KEY_NKEYS];
 
 
-
-static mat4_t perspective(const float fov, const float aspect,
-                        const float near, const float far)
+static mat4_t mat4_identity(void)
 {
-	const float radians = fov * (M_PI / 180.f);
-	const float half_fov = tanf(radians / 2.f);
-	mat4_t mat;
-	memset(&mat, 0, sizeof(mat4_t));
-	mat.data[0][0] = 1 / (aspect * half_fov);
-	mat.data[1][1] = 1 / half_fov;
-	mat.data[2][2] = -(far + near) / (far - near);
-	mat.data[2][3] = -1.0f;
-	mat.data[3][2] = -(2.f * far * near) / (far - near);
-	return mat;
-}
-
-static mat4_t translate(const vec3_t translate)
-{
-	mat4_t mat;
-
-	mat.data[0][0] = 1.0f;
-	mat.data[1][1] = 1.0f;
-	mat.data[2][2] = 1.0f;
-	mat.data[3][3] = 1.0f;
-
-	mat.data[3][0] = translate.x;
-	mat.data[3][1] = translate.y;
-	mat.data[3][2] = translate.z;
+	mat4_t mat = {{
+		{ 1, 0, 0, 0 },
+		{ 0, 1, 0, 0 },
+		{ 0, 0, 1, 0 },
+		{ 0, 0, 0, 1 }
+	}};
 
 	return mat;
 }
 
+static mat4_t mat4_ortho(const GLfloat left, const GLfloat right,
+                         const GLfloat bottom, const GLfloat top,
+			 const GLfloat near, const GLfloat far)
+{
+	mat4_t mat = mat4_identity();
+	mat.data[0][0] = 2.f / (right - left);
+	mat.data[1][1] = 2.f / (top - bottom);
+	mat.data[2][2] = -2.f / (far - near);
+	mat.data[3][0] = -(right + left) / (right - left);
+	mat.data[3][1] = -(top  + bottom) / (top - bottom);
+	mat.data[3][2] = -(far + near) / (far - near);
+	return mat;
+}
 
 static void shader_init(void)
 {
@@ -127,12 +120,8 @@ static void shader_init(void)
 			      (void*)(sizeof(GLfloat) * 2));
 
 	const GLint proj_attrib = glGetUniformLocation(shader_id, "projection");
-	const GLint view_attrib = glGetUniformLocation(shader_id, "view");
-	const mat4_t projection = perspective(45, 800.f / 600.f, 0.1, 100.f);
-	const vec3_t tran = { 0, 0, -3 };
-	const mat4_t view = translate(tran);
+	mat4_t projection = mat4_ortho(0, 800, 600, 0, -1, 1);
 	glUniformMatrix4fv(proj_attrib, 1, GL_FALSE, (GLfloat*) &projection);
-	glUniformMatrix4fv(view_attrib, 1, GL_FALSE, (GLfloat*) &view);
 }
 
 static void shader_term(void)
@@ -248,10 +237,10 @@ void mapi_render_quads(const struct quad* const quads, const int size)
 {
 	vertex_cnt += size;
 	for (int i = 0; i < size; ++i) {
-		const GLfloat px = (-1.0f + (quads[i].pos.x / 800.f));
-		const GLfloat py = (+1.0f - (quads[i].pos.y / 600.f));
-		const GLfloat sx = quads[i].size.x / 800.f;
-		const GLfloat sy = quads[i].size.y / 600.f;
+		const GLfloat px = quads[i].pos.x;
+		const GLfloat py = quads[i].pos.y;
+		const GLfloat sx = quads[i].size.x;
+		const GLfloat sy = quads[i].size.y;
 		const GLfloat r = quads[i].color.r;
 		const GLfloat g = quads[i].color.g;
 		const GLfloat b = quads[i].color.b;
