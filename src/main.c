@@ -13,7 +13,7 @@ int main(void)
 	const GLfloat paddle_vel = 5.5f;
 	struct vec2 ball_vel = { 8.5f, 8.5f };
 
-	const GLfloat mod[3] = { 0.00015, 0.00011, 0.00018 };
+	const GLfloat mod[3] = { 0.005, 0.0010, 0.0015 };
 	bool up[3] = { true, true, true };
 	GLfloat c[3] = { 0.0, 0.0, 0.0 };
 
