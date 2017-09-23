@@ -61,6 +61,11 @@ int main(void)
 			ball->pos.y = 300;
 		} else if (ball->pos.y >= 600 || ball->pos.y <= 0) {
 			ball_vel.y = -ball_vel.y;
+		} else if (ball_vel.x > 0) {
+			if (ball_vel.y > 0 && (enemy->pos.y + enemy->size.y) < 600)
+				enemy->pos.y += paddle_vel;
+			else if (ball_vel.y < 0 && (enemy->pos.y - enemy->size.y) > 0)
+				enemy->pos.y -= paddle_vel;
 		}
 	
 		/* check collisions */
