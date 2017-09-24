@@ -6,7 +6,7 @@
 
 
 #ifndef M_PI
-#define M_PI 3.14159265359
+#define M_PI (3.1415926535897932384626433832795)
 #endif
 
 
@@ -30,23 +30,38 @@ static GLuint vbo = 0;
 bool mapi_keys[MAPI_KEY_NKEYS];
 
 
-static mat4_t mat4_identity(void)
+static GLfloat radians(const GLfloat degrees)
+{
+	return degrees * (M_PI / 180.f);	
+}
+
+static mat4_t mat4_identity(const GLfloat i)
 {
 	mat4_t mat = {{
-		{ 1, 0, 0, 0 },
-		{ 0, 1, 0, 0 },
-		{ 0, 0, 1, 0 },
-		{ 0, 0, 0, 1 }
+		{ i, 0, 0, 0 },
+		{ 0, i, 0, 0 },
+		{ 0, 0, i, 0 },
+		{ 0, 0, 0, i }
 	}};
 
 	return mat;
+}
+
+static void mat4_translate(const GLfloat x, const GLfloat y, const GLfloat z,
+                           mat4_t* const mat)
+{
+	GLfloat* const data = &mat->data[0][0];
+	data[12] = data[12] + ((x * data[0]) + (y * data[4]) + (z * data[8]));
+	data[13] = data[13] + ((x * data[1]) + (y * data[5]) + (z * data[9]));
+	data[14] = data[14] + ((x * data[2]) + (y * data[6]) + (z * data[10]));
+	data[15] = data[15] + ((x * data[3]) + (y * data[7]) + (z * data[11]));
 }
 
 static mat4_t mat4_ortho(const GLfloat left, const GLfloat right,
                          const GLfloat bottom, const GLfloat top,
 			 const GLfloat near, const GLfloat far)
 {
-	mat4_t mat = mat4_identity();
+	mat4_t mat = mat4_identity(1);
 	mat.data[0][0] = 2.f / (right - left);
 	mat.data[1][1] = 2.f / (top - bottom);
 	mat.data[2][2] = -2.f / (far - near);
@@ -54,6 +69,26 @@ static mat4_t mat4_ortho(const GLfloat left, const GLfloat right,
 	mat.data[3][1] = -(top  + bottom) / (top - bottom);
 	mat.data[3][2] = -(far + near) / (far - near);
 	return mat;
+}
+
+static mat4_t mat4_persp(const GLfloat fovy, const GLfloat aspect,
+                         const GLfloat near, const GLfloat far)
+{
+	const GLfloat range = tan(radians(fovy / 2.f)) * near;
+	const GLfloat left = -range * aspect;
+	const GLfloat right = range * aspect;
+	const GLfloat bottom = -range;
+	const GLfloat top = range;
+
+	mat4_t mat = mat4_identity(0);
+	mat.data[0][0] = (2.f * near) / (right - left);
+	mat.data[1][1] = (2.f * near) / (top - bottom);
+	mat.data[2][2] = -(far + near) / (far - near);
+	mat.data[2][3] = -1.f;
+	mat.data[3][2] = -(2.f * far * near) / (far * near);
+
+	return mat;
+
 }
 
 static void shader_init(void)
@@ -64,11 +99,11 @@ static void shader_init(void)
 	"in vec3 rgb;\n"
 	"out vec4 frag_color;\n"
 	"uniform mat4 model = mat4(1.0);\n"
-	"uniform mat4 view = mat4(1.0);\n"
+	"uniform mat4 view;\n"
 	"uniform mat4 projection;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = projection * view * vec4(pos, 0.0, 1.0);\n"
+	"	gl_Position = projection * view * model * vec4(pos, 0.0, 1.0);\n"
 	"	frag_color = vec4(rgb / 255.0, 1.0);\n"
 	"}\n";
 	const GLchar* const fs_src =
