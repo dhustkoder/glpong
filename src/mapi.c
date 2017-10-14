@@ -96,6 +96,27 @@ static mat4_t mat4_persp(const GLfloat fovy, const GLfloat aspect,
 
 }
 
+
+static void free_music(void)
+{
+	if (playing_mus != NULL) {
+		Mix_FreeMusic(playing_mus);
+		playing_mus = NULL;
+	}
+}
+
+static bool load_music(const char* const filepath)
+{
+	free_music();
+	if ((playing_mus = Mix_LoadMUS(filepath)) == NULL) {
+		fprintf(stderr, "Couldn't load music \'%s\': %s",
+		        filepath, SDL_GetError());
+		return false;
+	}
+	return true;
+}
+
+
 static void shader_init(void)
 {
 	const GLchar* const vs_src =
@@ -237,15 +258,12 @@ Lsdlquit:
 
 void mapi_term(void)
 {
+	free_music();
 	shader_term();
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
-
-	if (playing_mus != NULL)
-		Mix_FreeMusic(playing_mus);
-
 	SDL_CloseAudio();
 	SDL_Quit();
 }
@@ -269,10 +287,8 @@ bool mapi_proc_events(void)
 		}
 	}
 
-	if (playing_mus != NULL && !Mix_PlayingMusic()) {
-		Mix_FreeMusic(playing_mus);
-		playing_mus = NULL;
-	}
+	if (playing_mus != NULL && !Mix_PlayingMusic())
+		free_music();
 
 	return true;
 }
@@ -345,17 +361,13 @@ void mapi_render_frame(void)
 
 void mapi_play_music(const char* const filepath)
 {
-	if (playing_mus != NULL)
-		Mix_FreeMusic(playing_mus);
+	if (!load_music(filepath))
+		return;
 
-	playing_mus = Mix_LoadMUS(filepath);
-
-	if (playing_mus == NULL) {
-		fprintf(stderr, "Couldn't load \'%s\': %s\n",
-		        filepath, SDL_GetError());
-	} else if (Mix_PlayMusic(playing_mus, 0) != 0) {
+	if (Mix_PlayMusic(playing_mus, 0) != 0) {
 		fprintf(stderr, "Couldn't play \'%s\': %s\n",
 		        filepath, SDL_GetError());
+		free_music();
 	}
 }
 
