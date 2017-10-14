@@ -5,10 +5,13 @@
 #include "mapi.h"
 
 
-int main(void)
+int main(int argc, char** argv)
 {
 	if (!mapi_init())
 		return EXIT_FAILURE;
+
+	if (argc > 1)
+		mapi_play_music(argv[1]);
 
 	const GLfloat paddle_vel = 5.5f;
 	struct vec2 ball_vel = { 8.5f, 8.5f };
@@ -29,7 +32,6 @@ int main(void)
 
 	while (mapi_proc_events()) {
 		mapi_render_clear(c[0], c[1], c[2], 1.0);
-
 		for (int i = 0; i < 3; ++i) {
 			if (up[i]) {
 				c[i] += mod[i];

@@ -3,7 +3,7 @@ SRC = src/*.c
 CFLAGS = -std=c99 -pedantic-errors -Wall -Wextra
 CFLAGS_RELEASE = -O3 -DNDEBUG
 CFLAGS_DEBUG = -O0 -g -DDEBUG
-LIBS = -lc -lm -lSDL2 -lGL -lGLEW
+LIBS = -lc -lm -lSDL2 -lSDL2_mixer -lGL -lGLEW
 
 
 ifeq ($(BUILD_TYPE),Release)

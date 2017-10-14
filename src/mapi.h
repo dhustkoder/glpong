@@ -59,11 +59,16 @@ static inline bool mapi_is_key_pressed(const enum MAPI_Key key)
 bool mapi_init(void);
 void mapi_term(void);
 bool mapi_proc_events(void);
+
+/* graphic */
 void mapi_render_clear(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 void mapi_render_begin(void);
 void mapi_render_quads(const struct quad* quads, int size);
 void mapi_render_flush(void);
 void mapi_render_frame(void);
+
+/* sound */
+void mapi_play_music(const char* const filepath);
 
 
 #endif

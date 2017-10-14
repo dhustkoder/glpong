@@ -2,6 +2,7 @@
 #include <math.h>
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include "mapi.h"
 
 
@@ -28,6 +29,10 @@ static GLuint vbo = 0;
 
 /* input */
 bool mapi_keys[MAPI_KEY_NKEYS];
+
+
+/* sound */
+static Mix_Music* playing_mus = NULL;
 
 
 static GLfloat radians(const GLfloat degrees)
@@ -176,13 +181,16 @@ bool mapi_init(void)
 		return false;
 	}
 
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) != 0)
+		goto Lsdlquit;
+
 	window = SDL_CreateWindow("glpong",
 	                          SDL_WINDOWPOS_CENTERED,
 				  SDL_WINDOWPOS_CENTERED,
 			          800, 600, SDL_WINDOW_OPENGL);
 	if (window == NULL) {
 		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
-		goto Lsdlquit;
+		goto Lcloseaudio;
 	}
 	
 	context = SDL_GL_CreateContext(window);
@@ -219,6 +227,8 @@ Ldeletecontext:
 	SDL_GL_DeleteContext(context);
 Ldestroywindow:
 	SDL_DestroyWindow(window);
+Lcloseaudio:
+	Mix_CloseAudio();
 Lsdlquit:
 	SDL_Quit();
 
@@ -232,6 +242,11 @@ void mapi_term(void)
 	glDeleteVertexArrays(1, &vao);
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
+
+	if (playing_mus != NULL)
+		Mix_FreeMusic(playing_mus);
+
+	SDL_CloseAudio();
 	SDL_Quit();
 }
 
@@ -252,6 +267,11 @@ bool mapi_proc_events(void)
 			}
 			break;
 		}
+	}
+
+	if (playing_mus != NULL && !Mix_PlayingMusic()) {
+		Mix_FreeMusic(playing_mus);
+		playing_mus = NULL;
 	}
 
 	return true;
@@ -320,5 +340,22 @@ void mapi_render_flush(void)
 void mapi_render_frame(void)
 {
 	SDL_GL_SwapWindow(window);
+}
+
+
+void mapi_play_music(const char* const filepath)
+{
+	if (playing_mus != NULL)
+		Mix_FreeMusic(playing_mus);
+
+	playing_mus = Mix_LoadMUS(filepath);
+
+	if (playing_mus == NULL) {
+		fprintf(stderr, "Couldn't load \'%s\': %s\n",
+		        filepath, SDL_GetError());
+	} else if (Mix_PlayMusic(playing_mus, 0) != 0) {
+		fprintf(stderr, "Couldn't play \'%s\': %s\n",
+		        filepath, SDL_GetError());
+	}
 }
 
