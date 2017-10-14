@@ -14,4 +14,4 @@ endif
 
 
 all:
-	$(CC) $(CFLAGS) $(LIBS) $(SRC) -o $(TARGET)
+	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o $(TARGET)
