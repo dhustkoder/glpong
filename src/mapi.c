@@ -30,9 +30,57 @@ static GLuint vbo = 0;
 /* input */
 bool mapi_keys[MAPI_KEY_NKEYS];
 
-
 /* sound */
-static Mix_Music* playing_mus = NULL;
+static Mix_Chunk** sounds = NULL;
+static Mix_Music** musics = NULL;
+static int sounds_size = 0;
+static int musics_size = 0;
+
+
+static void* aux_load_wav(const char* const file)
+{
+	return Mix_LoadWAV_RW(SDL_RWFromFile(file, "rb"), 1);
+}
+
+static void mix_free_files(void(* const mix_freefun)(void*),
+                           void** const buffer,
+                           int* const buffer_size)
+{
+	const int size = *buffer_size;
+	for (int i = 0; i < size; ++i)
+		mix_freefun(buffer[i]);
+
+	*buffer_size = 0;
+}
+
+static bool mix_load_files(const char* const* const filepaths,
+                           const int cnt,
+                           void*(* const mix_loadfun)(const char* file),
+                           void(* const mix_freefun)(void*),
+                           void*** const buffer,
+                           int* const buffer_size)
+{
+	if (*buffer_size > 0)
+		mix_free_files(mix_freefun, (*buffer), buffer_size);
+
+	(*buffer) = malloc(sizeof(void*) * cnt);
+	assert((*buffer) != NULL);
+
+	int i;
+	for (i = 0; i < cnt; ++i) {
+		if (((*buffer)[i] = mix_loadfun(filepaths[i])) == NULL)
+			break;
+	}
+
+	*buffer_size = i;
+	if (*buffer_size < cnt) {
+		mix_free_files(mix_freefun, (*buffer), buffer_size);
+		return false;
+	}
+
+	return true;
+}
+
 
 
 static GLfloat radians(const GLfloat degrees)
@@ -94,26 +142,6 @@ static mat4_t mat4_persp(const GLfloat fovy, const GLfloat aspect,
 
 	return mat;
 
-}
-
-
-static void free_music(void)
-{
-	if (playing_mus != NULL) {
-		Mix_FreeMusic(playing_mus);
-		playing_mus = NULL;
-	}
-}
-
-static bool load_music(const char* const filepath)
-{
-	free_music();
-	if ((playing_mus = Mix_LoadMUS(filepath)) == NULL) {
-		fprintf(stderr, "Couldn't load music \'%s\': %s",
-		        filepath, SDL_GetError());
-		return false;
-	}
-	return true;
 }
 
 
@@ -194,80 +222,6 @@ static void shader_term(void)
 	glDeleteProgram(shader_id);
 }
 
-
-bool mapi_init(void)
-{
-	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) != 0) {
-		fprintf(stderr, "SDL2 Error: %s", SDL_GetError());
-		return false;
-	}
-
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) != 0)
-		goto Lsdlquit;
-
-	window = SDL_CreateWindow("glpong",
-	                          SDL_WINDOWPOS_CENTERED,
-				  SDL_WINDOWPOS_CENTERED,
-			          800, 600, SDL_WINDOW_OPENGL);
-	if (window == NULL) {
-		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
-		goto Lcloseaudio;
-	}
-	
-	context = SDL_GL_CreateContext(window);
-	if (context == 0) {
-		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
-		goto Ldestroywindow;
-	}
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(1);
-
-	GLenum err;
-	if ((err = glewInit()) != GLEW_OK) {
-		fprintf(stderr, "GLEW Error: %s\n", glewGetErrorString(err));
-		goto Ldeletecontext;
-	}
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER,
-	             sizeof(GLfloat) * 1024,
-	             NULL, GL_DYNAMIC_DRAW);
-
-	glViewport(0, 0, 800, 600);
-
-	shader_init();
-	return true;
-
-Ldeletecontext:
-	SDL_GL_DeleteContext(context);
-Ldestroywindow:
-	SDL_DestroyWindow(window);
-Lcloseaudio:
-	Mix_CloseAudio();
-Lsdlquit:
-	SDL_Quit();
-
-	return false;
-}
-
-void mapi_term(void)
-{
-	free_music();
-	shader_term();
-	glDeleteBuffers(1, &vbo);
-	glDeleteVertexArrays(1, &vao);
-	SDL_GL_DeleteContext(context);
-	SDL_DestroyWindow(window);
-	SDL_CloseAudio();
-	SDL_Quit();
-}
-
 bool mapi_proc_events(void)
 {
 	SDL_Event event;
@@ -286,9 +240,6 @@ bool mapi_proc_events(void)
 			break;
 		}
 	}
-
-	if (playing_mus != NULL && !Mix_PlayingMusic())
-		free_music();
 
 	return true;
 }
@@ -359,15 +310,124 @@ void mapi_render_frame(void)
 }
 
 
-void mapi_play_music(const char* const filepath)
+void mapi_free_music_files(void)
 {
-	if (!load_music(filepath))
-		return;
+	mix_free_files((void(*)(void*))Mix_FreeMusic, (void**)musics, &musics_size);
+}
 
-	if (Mix_PlayMusic(playing_mus, 0) != 0) {
-		fprintf(stderr, "Couldn't play \'%s\': %s\n",
-		        filepath, SDL_GetError());
-		free_music();
+void mapi_free_sound_files(void)
+{
+	mix_free_files((void(*)(void*))Mix_FreeChunk, (void**)sounds, &sounds_size);
+}
+
+bool mapi_load_music_files(const char* const* const filepaths, const int cnt)
+{
+	return mix_load_files(filepaths, cnt,
+                              (void*(*)(const char*))Mix_LoadMUS,
+                              (void(*)(void*))Mix_FreeMusic,
+                              (void***)&musics, &musics_size);
+
+}
+
+bool mapi_load_sound_files(const char* const* const filepaths, const int cnt)
+{
+	return mix_load_files(filepaths, cnt,
+                              (void*(*)(const char*))aux_load_wav,
+                              (void(*)(void*))Mix_FreeChunk,
+                              (void***)&sounds, &sounds_size);
+
+}
+
+void mapi_play_music(const int id)
+{
+	assert(id < musics_size);
+	if (Mix_PlayMusic(musics[id], 0) != 0) {
+		fprintf(stderr, "Couldn't play music \'%d\': %s\n",
+		        id, SDL_GetError());
 	}
+}
+
+void mapi_play_sound(const int id)
+{
+	assert(id < sounds_size);
+	if (Mix_PlayChannel(-1, sounds[id], 0) != 0) {
+		fprintf(stderr, "Couldn't play sound \'%d\': %s\n",
+		        id, SDL_GetError());
+	}
+}
+
+
+bool mapi_init(void)
+{
+	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) != 0) {
+		fprintf(stderr, "SDL2 Error: %s", SDL_GetError());
+		return false;
+	}
+
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) != 0)
+		goto Lsdlquit;
+
+	window = SDL_CreateWindow("glpong",
+	                          SDL_WINDOWPOS_CENTERED,
+				  SDL_WINDOWPOS_CENTERED,
+			          800, 600, SDL_WINDOW_OPENGL);
+	if (window == NULL) {
+		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
+		goto Lcloseaudio;
+	}
+	
+	context = SDL_GL_CreateContext(window);
+	if (context == 0) {
+		fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
+		goto Ldestroywindow;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetSwapInterval(1);
+
+	GLenum err;
+	if ((err = glewInit()) != GLEW_OK) {
+		fprintf(stderr, "GLEW Error: %s\n", glewGetErrorString(err));
+		goto Ldeletecontext;
+	}
+
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER,
+	             sizeof(GLfloat) * 1024,
+	             NULL, GL_DYNAMIC_DRAW);
+
+	glViewport(0, 0, 800, 600);
+
+	shader_init();
+	return true;
+
+Ldeletecontext:
+	SDL_GL_DeleteContext(context);
+Ldestroywindow:
+	SDL_DestroyWindow(window);
+Lcloseaudio:
+	Mix_CloseAudio();
+Lsdlquit:
+	SDL_Quit();
+
+	return false;
+}
+
+void mapi_term(void)
+{
+	mapi_free_music_files();
+	mapi_free_sound_files();
+	shader_term();
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(window);
+	SDL_CloseAudio();
+	SDL_Quit();
 }
 

@@ -5,13 +5,16 @@
 #include "mapi.h"
 
 
-int main(int argc, char** argv)
+int main(void)
 {
 	if (!mapi_init())
 		return EXIT_FAILURE;
 
-	if (argc > 1)
-		mapi_play_music(argv[1]);
+	const char* music_files[1] = { "./test.ogg" };
+	const char* snd_files[1] = { "./test.wav" };
+	mapi_load_music_files(music_files, 1);
+	mapi_load_sound_files(snd_files, 1);
+	mapi_play_music(0);
 
 	const GLfloat paddle_vel = 5.5f;
 	struct vec2 ball_vel = { 8.5f, 8.5f };
@@ -90,6 +93,7 @@ int main(int argc, char** argv)
 			const int16_t btop = ball->pos.y - ball->size.y;
 			const int16_t bbottom = ball->pos.y + ball->size.y;
 			if (btop <= pbottom && bbottom >= ptop) {
+				mapi_play_sound(0);
 				ball_vel.x = -ball_vel.x;
 				if (ball->pos.y > paddle->pos.y)
 					ball_vel.y = abs(ball_vel.y);

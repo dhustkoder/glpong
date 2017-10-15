@@ -68,7 +68,10 @@ void mapi_render_flush(void);
 void mapi_render_frame(void);
 
 /* sound */
-void mapi_play_music(const char* const filepath);
+bool mapi_load_music_files(const char* const* const filepaths, int cnt);
+bool mapi_load_sound_files(const char* const* const filepaths, int cnt);
+void mapi_play_music(int id);
+void mapi_play_sound(int id);
 
 
 #endif
