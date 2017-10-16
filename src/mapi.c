@@ -56,12 +56,12 @@ static void mix_free_files(void(* const mix_freefun)(void*),
 static bool mix_load_files(const char* const* const filepaths,
                            const int cnt,
                            void*(* const mix_loadfun)(const char* file),
-                           void(* const mix_freefun)(void*),
+                           void(* const mix_freefun)(void),
                            void*** const buffer,
                            int* const buffer_size)
 {
 	if (*buffer_size > 0)
-		mix_free_files(mix_freefun, (*buffer), buffer_size);
+		mix_freefun();
 
 	(*buffer) = malloc(sizeof(void*) * cnt);
 	assert((*buffer) != NULL);
@@ -74,7 +74,7 @@ static bool mix_load_files(const char* const* const filepaths,
 
 	*buffer_size = i;
 	if (*buffer_size < cnt) {
-		mix_free_files(mix_freefun, (*buffer), buffer_size);
+		mix_freefun();
 		return false;
 	}
 
@@ -324,7 +324,7 @@ bool mapi_load_music_files(const char* const* const filepaths, const int cnt)
 {
 	return mix_load_files(filepaths, cnt,
                               (void*(*)(const char*))Mix_LoadMUS,
-                              (void(*)(void*))Mix_FreeMusic,
+                              mapi_free_music_files,
                               (void***)&musics, &musics_size);
 
 }
@@ -333,7 +333,7 @@ bool mapi_load_sound_files(const char* const* const filepaths, const int cnt)
 {
 	return mix_load_files(filepaths, cnt,
                               (void*(*)(const char*))aux_load_wav,
-                              (void(*)(void*))Mix_FreeChunk,
+                              mapi_free_sound_files,
                               (void***)&sounds, &sounds_size);
 
 }
