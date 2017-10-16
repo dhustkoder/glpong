@@ -56,12 +56,12 @@ static void mix_free_files(void(* const mix_freefun)(void*),
 static bool mix_load_files(const char* const* const filepaths,
                            const int cnt,
                            void*(* const mix_loadfun)(const char* file),
-                           void(* const mix_freefun)(void),
+                           void(* const free_files)(void),
                            void*** const buffer,
                            int* const buffer_size)
 {
 	if (*buffer_size > 0)
-		mix_freefun();
+		free_files();
 
 	(*buffer) = malloc(sizeof(void*) * cnt);
 	assert((*buffer) != NULL);
@@ -74,7 +74,7 @@ static bool mix_load_files(const char* const* const filepaths,
 
 	*buffer_size = i;
 	if (*buffer_size < cnt) {
-		mix_freefun();
+		free_files();
 		return false;
 	}
 
