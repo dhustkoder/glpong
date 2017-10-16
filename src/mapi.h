@@ -72,6 +72,7 @@ bool mapi_load_music_files(const char* const* const filepaths, int cnt);
 bool mapi_load_sound_files(const char* const* const filepaths, int cnt);
 void mapi_play_music(int id);
 void mapi_play_sound(int id);
+bool mapi_music_playing(void);
 
 
 #endif

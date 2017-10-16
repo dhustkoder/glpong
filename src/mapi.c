@@ -356,6 +356,11 @@ void mapi_play_sound(const int id)
 	}
 }
 
+bool mapi_music_playing(void)
+{
+	return Mix_PlayingMusic() != 0;
+}
+
 
 bool mapi_init(void)
 {
