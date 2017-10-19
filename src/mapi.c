@@ -53,6 +53,16 @@ static void mix_free_files(void(* const mix_freefun)(void*),
 	*buffer_size = 0;
 }
 
+static void mapi_free_music_files(void)
+{
+	mix_free_files((void(*)(void*))Mix_FreeMusic, (void**)musics, &musics_size);
+}
+
+static void mapi_free_sound_files(void)
+{
+	mix_free_files((void(*)(void*))Mix_FreeChunk, (void**)sounds, &sounds_size);
+}
+
 static bool mix_load_files(const char* const* const filepaths,
                            const int cnt,
                            void*(* const mix_loadfun)(const char* file),
@@ -307,17 +317,6 @@ void mapi_render_flush(void)
 void mapi_render_frame(void)
 {
 	SDL_GL_SwapWindow(window);
-}
-
-
-void mapi_free_music_files(void)
-{
-	mix_free_files((void(*)(void*))Mix_FreeMusic, (void**)musics, &musics_size);
-}
-
-void mapi_free_sound_files(void)
-{
-	mix_free_files((void(*)(void*))Mix_FreeChunk, (void**)sounds, &sounds_size);
 }
 
 bool mapi_load_music_files(const char* const* const filepaths, const int cnt)
