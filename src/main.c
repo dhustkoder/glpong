@@ -111,4 +111,3 @@ int main(void)
 	mapi_term();
 	return EXIT_SUCCESS;
 }
-
