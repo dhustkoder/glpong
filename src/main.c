@@ -10,8 +10,8 @@ int main(void)
 	if (!mapi_init())
 		return EXIT_FAILURE;
 
-	const char* music_files[1] = { "./test.ogg" };
-	const char* snd_files[1] = { "./test.wav" };
+	const char* const music_files[1] = { "./test.ogg" };
+	const char* const snd_files[1] = { "./test.wav" };
 	mapi_load_music_files(music_files, 1);
 	mapi_load_sound_files(snd_files, 1);
 	mapi_play_music(0);
