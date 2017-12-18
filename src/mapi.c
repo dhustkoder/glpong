@@ -49,7 +49,7 @@ static void mix_free_files(void(* const mix_freefun)(void*),
 	const int size = *buffer_size;
 	for (int i = 0; i < size; ++i)
 		mix_freefun(buffer[i]);
-
+	free(buffer);
 	*buffer_size = 0;
 }
 
